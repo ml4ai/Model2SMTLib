@@ -10,6 +10,10 @@ class TestCompilation(unittest.TestCase):
     def test_parseGroMEt(self):
         gFile = os.path.join(resources, "CHIME_SIR_while_loop--Gromet-FN-auto.json")
         # forall t I_t <= tau === I_0 <= tau and I_1 ...
+        # In SMT-Lib:
+        threshold=100.0
+        query = f"(forall ((t Int)) (<= (I t) {threshold}))"
+
 
 if __name__ == '__main__':
     unittest.main()
