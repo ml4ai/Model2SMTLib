@@ -1157,7 +1157,7 @@
             "global_reference_id": "",
             "files": [{"uid":"83d8107c-7eec-aafd-f870-ac36d0cae1a9","name":"CHIME_SIR_while_loop.py","path":""}],
             "provenance": {"method":"skema_code2fn_program_analysis","timestamp":"2022-08-06 19:32:51.862009"}
-        }
+        },
         {
             "metadata_type": "textual_document_collection",
             "documents": [{"uid":"","global_reference_id":"askem_8832","bibjson":{"title":"CHIME: COVID-19 Hospital Impact for Epidemics - Online Documentation","author":[{"name":"Jason Lubken"},{"name":"Marieke Jackson"},{"name":"Michael Chow"}],"type":"web_documentation","website":{"type":"url","location":"https://code-for-philly.gitbook.io/chime/"},"timestamp":"2021-01-19T21:08","link":[{"type":"gdrive","location":"https://drive.google.com/file/d/122LEBSEMF9x-3r3tWbF6YQ9xeV4I_9Eh/view?usp=sharing"}],"identifier":[{"type":"aske_id","id":"8467496e-3dfb-4efd-9061-433fef1b92de"}]}}],
