@@ -1,0 +1,14 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+gromet2smtlib = {editable = true, path = "."}
+automates = {editable = true, ref = "36ee4f53c9d216b3f2eac1809e23efc25a892c78", git = "https://github.com/ml4ai/automates.git"}
+
+[dev-packages]
+pytest = "==7.1.2"
+
+[requires]
+python_version = "3.9"

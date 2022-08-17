@@ -82,6 +82,20 @@ For people who want to make changes to your project, it's helpful to have some d
 
 You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
 
+
+### Development Setup: Ubuntu 20.04
+```bash
+# install python 3.9
+sudo apt install python3.9 python3.9-dev
+# install dev dependencies
+sudo apt install make
+pip install --user pipenv
+# install pygraphviz dependencies
+sudo apt install graphviz libgraphviz-dev pkg-config
+# Initialize development environment
+make setup-dev-env
+```
+
 ## Authors and acknowledgment
 Show your appreciation to those who have contributed to the project.
 
