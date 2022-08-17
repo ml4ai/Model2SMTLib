@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 gromet2smtlib = {editable = true, path = "."}
-automates = {editable = true, ref = "36ee4f53c9d216b3f2eac1809e23efc25a892c78", git = "https://github.com/ml4ai/automates.git"}
+automates = {editable = true, ref = "b596bc7da910c0f814fd702da6128c94bbfae06d", git = "https://github.com/ml4ai/automates.git"}
 
 [dev-packages]
 pytest = "==7.1.2"
