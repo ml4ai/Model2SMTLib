@@ -7,11 +7,18 @@ import os
 import unittest
 
 RESOURCES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../resources")
+GROMET_FILE = os.path.join(RESOURCES, "CHIME_SIR_while_loop--Gromet-FN-auto.json")
 
 class Test_CHIME_SIR(unittest.TestCase):
-    def test_query(self):
-        # threshold for infected population
-        infected_threshold = 130
+
+    def compare_results(self, infected_threshold):
+        """This function compares the simulator and FUNMAN reasoning about the CHIME SIR model.  The query_simulator function executes the simulator main() as run_CHIME_SIR, and answers the does_not_cross_threshold() query using the simulation reults.  The QueryableGromet class constructs a model from the GroMEt file corresponding to the simulator, and answers a query with the model.  The query for both cases asks whether the number of infected at any time point exceed a specified threshold.  The test will succeed if the simulator and QueryableGromet class agree on the response to the query.  
+        
+        Args:
+            infected_threshold (int): The upper bound for the number of infected for any time point.      
+        Returns:
+            bool: Do the simulator and QueryableGromet results match?
+        """
 
         # query the simulator
         def does_not_cross_threshold(sim_results):
@@ -20,11 +27,26 @@ class Test_CHIME_SIR(unittest.TestCase):
         q_sim = query_simulator(run_CHIME_SIR, does_not_cross_threshold)
 
         # query the gromet file
-        gromet = QueryableGromet.from_gromet_file(os.path.join(RESOURCES, "CHIME_SIR_while_loop--Gromet-FN-auto.json"))
+        gromet = QueryableGromet.from_gromet_file(GROMET_FILE)
         q_gromet = gromet.query(f"(forall ((t Int)) (<= (I t) {infected_threshold}))")
 
         # assert the both queries returned the same result
-        assert  q_sim == q_gromet
+        return  q_sim == q_gromet
+
+    def test_query_true(self):
+        """This test requires both methods to return True.
+        """       
+        # threshold for infected population
+        infected_threshold = 130
+        assert(self.compare_results(infected_threshold))
+
+    @unittest.expectedFailure
+    def test_query_false(self):
+        """This test requires both methods to return False.
+        """  
+        # threshold for infected population
+        infected_threshold = 100
+        assert(self.compare_results(infected_threshold))
 
 if __name__ == '__main__':
     unittest.main()

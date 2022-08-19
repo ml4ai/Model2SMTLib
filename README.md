@@ -96,6 +96,22 @@ sudo apt install graphviz libgraphviz-dev pkg-config
 make setup-dev-env
 ```
 
+### Development Setup: OSX M1
+
+```bash
+# install python 3.9
+brew install python3.9 python3.9-dev
+# install dev dependencies
+brew install make
+pip install --user pipenv
+# install pygraphviz dependencies
+brew install graphviz libgraphviz-dev pkg-config
+# install z3 
+brew install z3
+# Initialize development environment
+make setup-dev-env
+```
+
 ## Authors and acknowledgment
 Show your appreciation to those who have contributed to the project.
 
