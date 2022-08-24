@@ -76,7 +76,7 @@ class TestCompilation(unittest.TestCase):
         print(model)
 
     def test_simple_chime_propositional(self):
-        num_timepoints = 50
+        num_timepoints = 10
         threshold = 110.0
 
         susceptible = [Symbol(f"s_{t}", REAL) for t in range(num_timepoints)]
@@ -95,8 +95,8 @@ class TestCompilation(unittest.TestCase):
 
         # Params
         parameters = And([
-            Equals(beta, Real(0.1)),
-            Equals(gamma, Real(0.9))
+            Equals(beta, Real(0.01)),
+            Equals(gamma, Real(0.01))
         ])
 
         # initial population
@@ -173,6 +173,9 @@ class TestCompilation(unittest.TestCase):
         model = get_model(phi)
         
 
+        infected_values = [float(model.get_py_value(i)) for i in infected]
+        print(f"infected = {infected_values}")
+
         if model:
             print("Model is consistent")
             print("*"*80)
@@ -188,6 +191,9 @@ class TestCompilation(unittest.TestCase):
                 print("*"*80)
                 print(model)
                 print("*"*80)
+
+                infected_values = [model.get_py_value(i) for i in infected]
+                print(f"infected = {infected_values}")
             else:
                 print("Model & Query is inconsistent")
         else:
