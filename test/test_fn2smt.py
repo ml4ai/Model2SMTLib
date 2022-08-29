@@ -1,7 +1,13 @@
 from tkinter import Variable
+from gromet2smtlib.translate import QueryableGromet
 from pysmt.shortcuts import get_model, And, Symbol, FunctionType, Function, Equals, Int, Real, substitute, TRUE, FALSE, Iff, Plus, ForAll, LT
 from pysmt.typing import INT, REAL, BOOL
 import unittest
+import os
+
+from automates.program_analysis.JSON2GroMEt import json2gromet
+
+RESOURCES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../resources")
 
 class TestCompilation(unittest.TestCase):
     def test_toy(self):
@@ -198,6 +204,20 @@ class TestCompilation(unittest.TestCase):
                 print("Model & Query is inconsistent")
         else:
             print("Model is inconsistent")
+
+
+    def test_gromet_to_smt1(self):
+        """Encoding for `x = 2`
+        """
+        gFile = os.path.join(RESOURCES, "gromet", "exp0--Gromet-FN-auto.json")
+        
+        
+        fn = QueryableGromet.from_gromet_file(gFile)
+        print(fn._gromet_fn)
+        phi = fn.to_smtlib()
+        model = get_model(phi)
+        print(model)
+        assert(model)
 
 if __name__ == '__main__':
     unittest.main()
