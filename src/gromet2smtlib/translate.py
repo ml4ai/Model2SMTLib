@@ -47,10 +47,10 @@ class QueryableGromet(object):
 
     def _gromet_fnmodule_to_smtlib(self, node, stack=[]):
         stack.append((node.name, node))
-        (_, fn_constraints) = self._to_smtlib(node.fn, stack=stack)
+        [(_, fn_constraints)] = self._to_smtlib(node.fn, stack=stack)
         # attr_constraints = And([self._to_smtlib(attr, stack=node) for attr in node.attributes])
         stack.pop()
-        return ([Symbol(node.name, INT)], And(fn_constraints))
+        return [([Symbol(node.name, INT)], fn_constraints)]
     
     def _gromet_fn_to_smtlib(self, node, stack=[]):
         """Convert a fn node into constraints.  The constraints state that:
@@ -95,17 +95,20 @@ class QueryableGromet(object):
                 stack.append((f"pof[{i_orig}]", pof))
                 [([pof_head], _)] = self._to_smtlib(pof, stack=stack)
                 stack.pop()
-                pof_symbols.append(pof_head)
+                
                 bf_opo = bf_opo_symbols[i]
                 phi_bind_pof_opo = Equals(pof_head, bf_opo)
                 port_bindings.append(phi_bind_pof_opo)
 
                 if hasattr(pof, "name") and pof.name:
-                    stack.append(f"{pof.name}", pof.name)
+                    stack.append((f"{pof.name}", pof.name))
                     pof_name = Symbol(self._get_stack_identifier(stack), INT)
                     stack.pop()
                     pof_name_pof_binding = Equals(pof_name, pof_head)
                     port_bindings.append(pof_name_pof_binding)
+                    pof_symbols.append(pof_name)  # Use pof name if present for outside reference
+                else:
+                    pof_symbols.append(pof_head) # Otherwise use pof sybmol for outside reference
 
             phi = And(port_bindings + [phi_bf_impl])
             # symbol = Symbol(self._get_stack_identifier(stack), INT)

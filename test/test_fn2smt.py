@@ -1,6 +1,6 @@
 from tkinter import Variable
 from gromet2smtlib.translate import QueryableGromet
-from pysmt.shortcuts import get_model, And, Symbol, FunctionType, Function, Equals, Int, Real, substitute, TRUE, FALSE, Iff, Plus, ForAll, LT
+from pysmt.shortcuts import get_model, And, Symbol, FunctionType, Function, Equals, Int, Real, substitute, TRUE, FALSE, Iff, Plus, ForAll, LT, simplify
 from pysmt.typing import INT, REAL, BOOL
 import unittest
 import os
@@ -216,8 +216,9 @@ class TestCompilation(unittest.TestCase):
         print(fn._gromet_fn)
         phi = fn.to_smtlib()
         model = get_model(phi)
-        print(model)
-        assert(model)
+        assert(model) # Is phi satisfiable?
+        assert(model.get_py_value(Symbol('exp0.fn.x', INT)) == 2) # Did the model get the right assignment?
+        
 
 if __name__ == '__main__':
     unittest.main()
