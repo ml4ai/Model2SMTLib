@@ -12,6 +12,8 @@ from automates.model_assembly.gromet.model.gromet_fn_module import GrometFNModul
 
 from automates.program_analysis.JSON2GroMEt.json2gromet import json_to_gromet
 
+from gromet2smtlib.parameter_space import ParameterSpace
+
 # TODO more descriptive name
 class QueryableGromet(object):
 
@@ -203,8 +205,32 @@ class QueryableGromet(object):
         return [([literal], phi)]
 
     # STUB This is where we will read in an process the gromet file
-    def query(this, query_str):
+    def query(self, query_str):
         return True
+
+    # STUB Return the GrometBox based on the name (or path?)
+    def get_box(self, name):
+        # placeholder direct access via attributes list
+        results = [a for a in self._gromet_fn.attributes if a.value.b[0].name == name]
+        assert len(results) == 1
+        return results[0]
+
+    # STUB Substitute the GrometBox b_sub into b_org's position
+    def substitute_box(self, b_org, b_sub, in_place = False):
+        '''
+        b_org:
+            the box to replace
+        b_sub:
+            the replacement box
+        in_place:
+            flag on whether or not to return a new object or edit the current
+        object in place.
+        '''
+        return self
+
+    # STUB Run parameter synthesis
+    def synthesize_parameters(self):
+        return ParameterSpace()
 
     # STUB Read the gromet file into some object
     @staticmethod

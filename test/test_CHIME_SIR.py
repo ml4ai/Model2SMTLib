@@ -1,7 +1,7 @@
 from gromet2smtlib.translate import QueryableGromet
 from gromet2smtlib.simulator import query_simulator
 
-from sim.CHIME_SIR import main as run_CHIME_SIR
+from sim.CHIME.CHIME_SIR import main as run_CHIME_SIR
 
 import os
 import unittest
