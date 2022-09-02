@@ -22,4 +22,4 @@ class ParameterSpace(object):
     # STUB compare parameter spaces for equality
     @staticmethod
     def compare(ps1, ps2) -> bool:
-        return True
+        raise NotImplementedError()
