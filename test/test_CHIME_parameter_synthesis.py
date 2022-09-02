@@ -21,6 +21,8 @@ class Test_CHIME_SIR(unittest.TestCase):
 
         It then compares the models by determining that the respective spaces of feasible parameter values intersect.
         """
+
+        ############################ Prepare Models ####################################
         # read in the gromet file
         gromet_org = QueryableGromet.from_gromet_file(GROMET_FILE)
         # identify the GrometBox we want to replace
@@ -29,10 +31,16 @@ class Test_CHIME_SIR(unittest.TestCase):
         beta_fn_sub = CHIME_substitutions.constant_beta()
         # substitute the constant beta box in place of the original
         gromet_sub = gromet_org.substitute_box(beta_fn_org, beta_fn_sub)
+        # Scenario query threshold
+        infected_threshold = 130
+
+        ############################ Evaluate Models ###################################
         # get parameter space for the original (3 epochs)
-        ps_b1_b2_b3 = gromet_org.synthesize_parameters()
+        ps_b1_b2_b3 = gromet_org.synthesize_parameters(f"(forall ((t Int)) (<= (I t) {infected_threshold}))")
         # get parameter space for the constant beta variant
-        ps_bc = gromet_sub.synthesize_parameters()
+        ps_bc = gromet_sub.synthesize_parameters(f"(forall ((t Int)) (<= (I t) {infected_threshold}))")
+        
+        ############################ Compare Models ####################################
         # construct special parameter space where parameters are equal
         ps_eq = ParameterSpace.construct_all_equal(ps_b1_b2_b3)
         # intersect the original parameter space with the ps_eq to get the
