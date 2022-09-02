@@ -204,7 +204,7 @@ def main():
 
     # initial parameters
     i_day = 17.0  ## main_i_day_exp
-    n_days = 60  ## main_n_days_exp
+    n_days = 40  ## main_n_days_exp
     N_p = 2  ## main_N_p_exp
     N_t = 121  ## main_N_t_exp
     infections_days = 14.0  ## main_inf_days_exp

@@ -8,7 +8,8 @@ import os
 import unittest
 
 RESOURCES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../resources")
-GROMET_FILE = os.path.join(RESOURCES, "CHIME_SIR_while_loop--Gromet-FN-auto.json")
+GROMET_FILE_1 = os.path.join(RESOURCES, "CHIME_SIR_while_loop--Gromet-FN-auto.json")
+GROMET_FILE_2 = os.path.join(RESOURCES, "CHIME_SIR_while_loop--Gromet-FN-auto-one-epoch.json")
 
 class Test_CHIME_SIR(unittest.TestCase):
 
@@ -23,14 +24,12 @@ class Test_CHIME_SIR(unittest.TestCase):
         """
 
         ############################ Prepare Models ####################################
-        # read in the gromet file
-        gromet_org = QueryableGromet.from_gromet_file(GROMET_FILE)
-        # identify the GrometBox we want to replace
-        beta_fn_org = gromet_org.get_box("get_beta")
-        # construct a GrometBox to use as a substitution
-        beta_fn_sub = CHIME_substitutions.constant_beta()
-        # substitute the constant beta box in place of the original
-        gromet_sub = gromet_org.substitute_box(beta_fn_org, beta_fn_sub)
+        # read in the gromet files
+        # GROMET_FILE_1 is the original GroMEt extracted from the simulator
+        # It sets N_p = 3 and n_days = 20, resulting in three epochs of 0, 20, and 20 days
+        gromet_org = QueryableGromet.from_gromet_file(GROMET_FILE_1)
+        # GROMET_FILE_2 modifes sets N_p = 2 and n_days = 40, resulting in one epoch of 40 days
+        gromet_sub = QueryableGromet.from_gromet_file(GROMET_FILE_2)
         # Scenario query threshold
         infected_threshold = 130
 
