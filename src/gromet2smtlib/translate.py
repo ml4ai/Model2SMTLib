@@ -15,7 +15,11 @@ from automates.program_analysis.JSON2GroMEt.json2gromet import json_to_gromet
 from gromet2smtlib.parameter_space import ParameterSpace
 
 # TODO more descriptive name
-class QueryableGromet(object):
+
+class QueryableModel(object):
+    pass
+
+class QueryableGromet(QueryableModel):
 
     def __init__(self, gromet_fn) -> None:
         self._gromet_fn = gromet_fn
@@ -235,4 +239,28 @@ class QueryableGromet(object):
     # STUB Read the gromet file into some object
     @staticmethod
     def from_gromet_file(gromet_path):
+        return QueryableGromet(json_to_gromet(gromet_path))
+
+
+
+class QueryableBilayer(QueryableModel):
+    ## copied from QueryableGromet. TODO update for bilayer rep.
+    def __init__(self, gromet_fn) -> None:
+        self._gromet_fn = gromet_fn
+        self.gromet_encoding_handlers = {
+            str(GrometFNModule) : self._gromet_fnmodule_to_smtlib,
+            str(GrometFN) : self._gromet_fn_to_smtlib,
+            str(TypedValue) : self._gromet_typed_value_to_smtlib,
+            str(GrometPort) : self._gromet_port_to_smtlib,
+            str(GrometBoxFunction): self._gromet_box_function_to_smtlib,
+            str(LiteralValue): self._gromet_literal_value_to_smtlib,
+        }
+
+    # STUB This is where we will read in and process the bilayer file
+    def query(query_str):
+        return False
+
+    # STUB Read the bilayer file into some object
+    @staticmethod
+    def from_bilayer_file(gromet_path):
         return QueryableGromet(json_to_gromet(gromet_path))
