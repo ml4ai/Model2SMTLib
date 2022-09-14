@@ -233,7 +233,7 @@ class QueryableGromet(QueryableModel):
         return self
 
     # STUB Run parameter synthesis
-    def synthesize_parameters(self):
+    def synthesize_parameters(self, query):
         return ParameterSpace()
 
     # STUB Read the gromet file into some object
