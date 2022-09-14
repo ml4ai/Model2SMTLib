@@ -1,4 +1,3 @@
-from tkinter import Variable
 from gromet2smtlib.translate import QueryableGromet
 from pysmt.shortcuts import get_model, And, Symbol, FunctionType, Function, Equals, Int, Real, substitute, TRUE, FALSE, Iff, Plus, ForAll, LT, simplify
 from pysmt.typing import INT, REAL, BOOL
