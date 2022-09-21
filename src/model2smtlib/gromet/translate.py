@@ -5,14 +5,12 @@ from automates.model_assembly.gromet.model.gromet_port import GrometPort
 from automates.model_assembly.gromet.model.literal_value import LiteralValue
 from automates.model_assembly.gromet.model.typed_value import TypedValue
 from automates.model_assembly.gromet.model.function_type import FunctionType
-from pysmt.shortcuts import get_model, And, Or, Symbol, Equals, Int, Real, substitute, TRUE, FALSE, Iff, Plus, ForAll, LT
-from pysmt.typing import INT, REAL, BOOL
+from pysmt.shortcuts import And, Symbol, Equals, Int
+from pysmt.typing import INT
 
 from automates.model_assembly.gromet.model.gromet_fn_module import GrometFNModule
 
 from automates.program_analysis.JSON2GroMEt.json2gromet import json_to_gromet
-
-from gromet2smtlib.parameter_space import ParameterSpace
 
 # TODO more descriptive name
 
@@ -231,10 +229,6 @@ class QueryableGromet(QueryableModel):
         object in place.
         '''
         return self
-
-    # STUB Run parameter synthesis
-    def synthesize_parameters(self, query):
-        return ParameterSpace()
 
     # STUB Read the gromet file into some object
     @staticmethod

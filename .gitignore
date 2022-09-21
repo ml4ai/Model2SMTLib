@@ -1,6 +1,8 @@
 env
 **/__pycache__
 
+Pipfile.lock
+
 # locally stored virtual envionment defined by pipenv
 .venv/
 

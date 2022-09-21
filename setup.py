@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import sys
 import os
 
-setup(name='gromet2smtlib',
+setup(name='model2smtlib',
       version='0.1',
       description='Gromet to SMT-Lib converter',
       url='',
