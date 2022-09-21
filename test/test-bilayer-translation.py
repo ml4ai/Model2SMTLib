@@ -1,5 +1,5 @@
 import json
-from pysmt.shortcuts import get_model, And, Symbol, FunctionType, Function, Equals, Int, Real, substitute, TRUE, FALSE, Iff, Plus, ForAll, LT, simplify
+from pysmt.shortcuts import get_model, And, Symbol, FunctionType, Function, Equals, Int, Real, substitute, TRUE, FALSE, Iff, Plus, Times, ForAll, LT, simplify
 from pysmt.typing import INT, REAL, BOOL
 
 filepath = './data/epidemiology/CHIME/CHIME_SIR_model/gromet/BL_1.0/CHIME_SIR_dynamics_BiLayer.json'
@@ -52,7 +52,9 @@ def combine_efflux(jsondata):
     for i in range(len(outputs)):
         influx_vars = []
         efflux_vars = []
-        print('output variable:',outputs[i]) ## this gives the change in the current variable.  example: S', I', and R'
+        output_var = outputs[i]
+        equation = output_var # initialization of equation, to be set equal to 0
+#        print('output variable:',output_var) ## this gives the change in the current variable.  example: S', I', and R'
         for j in range(len(influxes[i])): ## influxes correspond to added (+) changes
             influx_index = ((influxes[i])[j])[0] ## index of the parameter 
             influx_param = params[influx_index-1] ## relevant parameter for influx term    
@@ -61,7 +63,13 @@ def combine_efflux(jsondata):
                 win_input_variable_index = (win_by_param[k])[0]
                 input_var = inputs[win_input_variable_index - 1]
                 influx_vars.append(input_var)
-            print('result:', f'+{influx_param}{influx_vars}')
+##            print('result:', f'+{influx_param}{influx_vars}')
+            
+            ##influx_eqn = Equals(output_var,inputs[i])
+            influx_expression = influx_param
+            for var in influx_vars:
+                influx_expression = Times(influx_expression, var)
+            equation = equation - influx_expression
         for j in range(len(effluxes[i])): ## effluxes correspond to subtracted (-) changes
             efflux_index = ((effluxes[i])[j])[0]
             efflux_param = params[efflux_index-1]
@@ -70,7 +78,13 @@ def combine_efflux(jsondata):
                 win_input_variable_index = (win_by_param[k])[0]
                 input_var = inputs[win_input_variable_index - 1]
                 efflux_vars.append(input_var)
-            print('result:', f'-{efflux_param}{efflux_vars}')
+#            print('result:', f'-{efflux_param}{efflux_vars}')
+            efflux_expression = efflux_param
+            for var in efflux_vars:
+                efflux_expression = Times(efflux_expression, var)
+            equation = equation + efflux_expression
+            dyn_eq = Equals(equation, Real(0))
+        print(equation) ## thing that is set equal to 0
         print("")
 
 print(combine_efflux(data))
