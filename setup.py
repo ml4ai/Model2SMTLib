@@ -4,7 +4,7 @@ import os
 
 setup(name='model2smtlib',
       version='0.1',
-      description='Gromet to SMT-Lib converter',
+      description='Model to SMT-Lib converter',
       url='',
       author='Dan Bryce',
       author_email='dbryce@sift.net',
