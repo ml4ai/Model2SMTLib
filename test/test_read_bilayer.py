@@ -13,6 +13,9 @@ class TestCompilation(unittest.TestCase):
         bilayer = Bilayer.from_json(bilayer_json_file)
         assert bilayer
 
+        encoding = bilayer.to_smtlib(2)
+        assert encoding
+
 
 if __name__ == "__main__":
     unittest.main()

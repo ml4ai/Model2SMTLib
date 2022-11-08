@@ -1,4 +1,5 @@
 import json
+from model2smtlib import QueryableModel
 from automates.model_assembly.gromet.model.gromet_box_function import (
     GrometBoxFunction,
 )
@@ -33,9 +34,6 @@ from automates.program_analysis.JSON2GroMEt.json2gromet import json_to_gromet
 
 # TODO more descriptive name
 
-
-class QueryableModel(object):
-    pass
 
 
 class QueryableGromet(QueryableModel):
