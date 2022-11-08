@@ -31,8 +31,6 @@ from automates.model_assembly.gromet.model.gromet_fn_module import (
 
 from automates.program_analysis.JSON2GroMEt.json2gromet import json_to_gromet
 
-from gromet2smtlib.parameter_space import ParameterSpace
-
 # TODO more descriptive name
 
 
@@ -268,10 +266,6 @@ class QueryableGromet(QueryableModel):
         object in place.
         """
         return self
-
-    # STUB Run parameter synthesis
-    def synthesize_parameters(self):
-        return ParameterSpace()
 
     # STUB Read the gromet file into some object
     @staticmethod

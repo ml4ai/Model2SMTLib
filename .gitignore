@@ -1,6 +1,8 @@
 env
 **/__pycache__
 
+Pipfile.lock
+
 # locally stored virtual envionment defined by pipenv
 .venv/
 
@@ -177,4 +179,3 @@ doc/encoding_examples/GroMEtFN/encodings.fdb_latexmk
 doc/encoding_examples/GroMEtFN/encodings.fls
 doc/encoding_examples/GroMEtFN/encodings.synctex.gz
 .DS_Store
-src/.DS_Store
