@@ -1,14 +1,33 @@
 import json
-from automates.model_assembly.gromet.model.gromet_box_function import GrometBoxFunction
+from automates.model_assembly.gromet.model.gromet_box_function import (
+    GrometBoxFunction,
+)
 from automates.model_assembly.gromet.model.gromet_fn import GrometFN
 from automates.model_assembly.gromet.model.gromet_port import GrometPort
 from automates.model_assembly.gromet.model.literal_value import LiteralValue
 from automates.model_assembly.gromet.model.typed_value import TypedValue
 from automates.model_assembly.gromet.model.function_type import FunctionType
-from pysmt.shortcuts import get_model, And, Or, Symbol, Equals, Int, Real, substitute, TRUE, FALSE, Iff, Plus, ForAll, LT
+from pysmt.shortcuts import (
+    get_model,
+    And,
+    Or,
+    Symbol,
+    Equals,
+    Int,
+    Real,
+    substitute,
+    TRUE,
+    FALSE,
+    Iff,
+    Plus,
+    ForAll,
+    LT,
+)
 from pysmt.typing import INT, REAL, BOOL
 
-from automates.model_assembly.gromet.model.gromet_fn_module import GrometFNModule
+from automates.model_assembly.gromet.model.gromet_fn_module import (
+    GrometFNModule,
+)
 
 from automates.program_analysis.JSON2GroMEt.json2gromet import json_to_gromet
 
@@ -16,18 +35,19 @@ from gromet2smtlib.parameter_space import ParameterSpace
 
 # TODO more descriptive name
 
+
 class QueryableModel(object):
     pass
 
-class QueryableGromet(QueryableModel):
 
+class QueryableGromet(QueryableModel):
     def __init__(self, gromet_fn) -> None:
         self._gromet_fn = gromet_fn
         self.gromet_encoding_handlers = {
-            str(GrometFNModule) : self._gromet_fnmodule_to_smtlib,
-            str(GrometFN) : self._gromet_fn_to_smtlib,
-            str(TypedValue) : self._gromet_typed_value_to_smtlib,
-            str(GrometPort) : self._gromet_port_to_smtlib,
+            str(GrometFNModule): self._gromet_fnmodule_to_smtlib,
+            str(GrometFN): self._gromet_fn_to_smtlib,
+            str(TypedValue): self._gromet_typed_value_to_smtlib,
+            str(GrometPort): self._gromet_port_to_smtlib,
             str(GrometBoxFunction): self._gromet_box_function_to_smtlib,
             str(LiteralValue): self._gromet_literal_value_to_smtlib,
         }
@@ -46,10 +66,12 @@ class QueryableGromet(QueryableModel):
         Returns:
             pysmt.Node: SMTLib object for constraints.
         """
-        return self.gromet_encoding_handlers[str(node.__class__)](node, stack=stack)
+        return self.gromet_encoding_handlers[str(node.__class__)](
+            node, stack=stack
+        )
 
     def _get_stack_identifier(self, stack):
-        return ".".join([name for (name, x) in stack ])
+        return ".".join([name for (name, x) in stack])
 
     def _gromet_fnmodule_to_smtlib(self, node, stack=[]):
         stack.append((node.name, node))
@@ -57,7 +79,7 @@ class QueryableGromet(QueryableModel):
         # attr_constraints = And([self._to_smtlib(attr, stack=node) for attr in node.attributes])
         stack.pop()
         return [([Symbol(node.name, INT)], fn_constraints)]
-    
+
     def _gromet_fn_to_smtlib(self, node, stack=[]):
         """Convert a fn node into constraints.  The constraints state that:
         - The function output (pof) is equal to the output of the box function (bf)
@@ -70,29 +92,32 @@ class QueryableGromet(QueryableModel):
             pysmt.Node: Constraints encoding node.
         """
         # fn.pof[i] = fn.bf[fn.pof[i].box-1]
-        
+
         stack.append(("fn", node))
 
         # Each iteration of this loop will generate a symbol
-        # and an implementation for a box function output port (pof),  
+        # and an implementation for a box function output port (pof),
         # which appear in outputs as pairs
-
 
         outputs = []
 
         for j, bf_decl in enumerate(node.bf):
             # get all outputs for bf, store original index i
-            bf_pofs = [ (i, pof) for i, pof in enumerate(node.pof) if pof.box-1 == j]  
+            bf_pofs = [
+                (i, pof) for i, pof in enumerate(node.pof) if pof.box - 1 == j
+            ]
 
-            # get implementation for bf          
+            # get implementation for bf
             if hasattr(bf_decl, "contents") and bf_decl.contents:
-                bf_impl = stack[0][1].attributes[bf_decl.contents-1]
+                bf_impl = stack[0][1].attributes[bf_decl.contents - 1]
             else:
                 bf_impl = bf_decl
             stack.append((f"bf[{j}]", bf_impl))
-            [(bf_opo_symbols, phi_bf_impl)] = self._to_smtlib(bf_impl, stack=stack)
+            [(bf_opo_symbols, phi_bf_impl)] = self._to_smtlib(
+                bf_impl, stack=stack
+            )
             stack.pop()
-        
+
             # Bind the opo ports of the box function to the pofs of node
             port_bindings = []
             pof_symbols = []
@@ -101,7 +126,7 @@ class QueryableGromet(QueryableModel):
                 stack.append((f"pof[{i_orig}]", pof))
                 [([pof_head], _)] = self._to_smtlib(pof, stack=stack)
                 stack.pop()
-                
+
                 bf_opo = bf_opo_symbols[i]
                 phi_bind_pof_opo = Equals(pof_head, bf_opo)
                 port_bindings.append(phi_bind_pof_opo)
@@ -112,9 +137,13 @@ class QueryableGromet(QueryableModel):
                     stack.pop()
                     pof_name_pof_binding = Equals(pof_name, pof_head)
                     port_bindings.append(pof_name_pof_binding)
-                    pof_symbols.append(pof_name)  # Use pof name if present for outside reference
+                    pof_symbols.append(
+                        pof_name
+                    )  # Use pof name if present for outside reference
                 else:
-                    pof_symbols.append(pof_head) # Otherwise use pof sybmol for outside reference
+                    pof_symbols.append(
+                        pof_head
+                    )  # Otherwise use pof sybmol for outside reference
 
             phi = And(port_bindings + [phi_bf_impl])
             # symbol = Symbol(self._get_stack_identifier(stack), INT)
@@ -130,9 +159,9 @@ class QueryableGromet(QueryableModel):
         opo_wires = []
         if node.wfopo:
             for i, wfopo in enumerate(node.wfopo):
-                source_opo = node.opo[wfopo.src-1]
-                target_pof = node.pof[wfopo.tgt-1]
-                
+                source_opo = node.opo[wfopo.src - 1]
+                target_pof = node.pof[wfopo.tgt - 1]
+
                 stack.append((f"opo[{wfopo.src-1}]", source_opo))
                 source_symbol = Symbol(self._get_stack_identifier(stack), INT)
                 stack.pop()
@@ -152,10 +181,12 @@ class QueryableGromet(QueryableModel):
         # need opo and opi symbols for binding and the
         # implementation of the internals
         out_symbols = [s for (ss, _) in opo_wires for s in ss]
-        in_symbols =  [s for (ss, _) in opi_wires for s in ss]
-        impl = And([imp for (_, imp) in outputs + inputs + opo_wires + opi_wires])
+        in_symbols = [s for (ss, _) in opi_wires for s in ss]
+        impl = And(
+            [imp for (_, imp) in outputs + inputs + opo_wires + opi_wires]
+        )
 
-        return [(out_symbols+in_symbols, impl)]
+        return [(out_symbols + in_symbols, impl)]
 
     def _gromet_port_to_smtlib(self, node, stack=[]):
         # stack.append((node.name, node))
@@ -166,7 +197,7 @@ class QueryableGromet(QueryableModel):
     def _gromet_box_function_to_smtlib(self, node, stack=[]):
         phi = None
         if node.function_type == FunctionType.EXPRESSION:
-            function_node = stack[0][1].attributes[node.contents-1]
+            function_node = stack[0][1].attributes[node.contents - 1]
             stack.append((f"fn", function_node))
             [(symbols, phi)] = self._to_smtlib(function_node, stack=stack)
             stack.pop()
@@ -176,15 +207,17 @@ class QueryableGromet(QueryableModel):
             [(symbols, phi)] = self._to_smtlib(function_node, stack=stack)
             stack.pop()
         else:
-            raise ValueError(f"node.function_type = {node.function_type} is not supported.")
+            raise ValueError(
+                f"node.function_type = {node.function_type} is not supported."
+            )
 
         return [(symbols, phi)]
 
     def _gromet_typed_value_to_smtlib(self, node, stack=[]):
         phi = None
-        if node.type == "FN": # FIXME find def for the string
+        if node.type == "FN":  # FIXME find def for the string
             # define output ports
-            # map i/o ports 
+            # map i/o ports
             #  wfopo
             stack.append((f"value", node.value))
             [(symbols, phi)] = self._to_smtlib(node.value, stack=stack)
@@ -201,11 +234,13 @@ class QueryableGromet(QueryableModel):
             value = Int(node.value)
             value_enum = INT
         else:
-            raise ValueError(f"literal_value of type {value_type} not supported.")
+            raise ValueError(
+                f"literal_value of type {value_type} not supported."
+            )
 
         literal = Symbol(f"{self._get_stack_identifier(stack)}", value_enum)
         phi = Equals(literal, value)
-        
+
         return [([literal], phi)]
 
     # STUB This is where we will read in an process the gromet file
@@ -215,13 +250,15 @@ class QueryableGromet(QueryableModel):
     # STUB Return the GrometBox based on the name (or path?)
     def get_box(self, name):
         # placeholder direct access via attributes list
-        results = [a for a in self._gromet_fn.attributes if a.value.b[0].name == name]
+        results = [
+            a for a in self._gromet_fn.attributes if a.value.b[0].name == name
+        ]
         assert len(results) == 1
         return results[0]
 
     # STUB Substitute the GrometBox b_sub into b_org's position
-    def substitute_box(self, b_org, b_sub, in_place = False):
-        '''
+    def substitute_box(self, b_org, b_sub, in_place=False):
+        """
         b_org:
             the box to replace
         b_sub:
@@ -229,7 +266,7 @@ class QueryableGromet(QueryableModel):
         in_place:
             flag on whether or not to return a new object or edit the current
         object in place.
-        '''
+        """
         return self
 
     # STUB Run parameter synthesis
@@ -239,28 +276,4 @@ class QueryableGromet(QueryableModel):
     # STUB Read the gromet file into some object
     @staticmethod
     def from_gromet_file(gromet_path):
-        return QueryableGromet(json_to_gromet(gromet_path))
-
-
-
-class QueryableBilayer(QueryableModel):
-    ## copied from QueryableGromet. TODO update for bilayer rep.
-    def __init__(self, gromet_fn) -> None:
-        self._gromet_fn = gromet_fn
-        self.gromet_encoding_handlers = {
-            str(GrometFNModule) : self._gromet_fnmodule_to_smtlib,
-            str(GrometFN) : self._gromet_fn_to_smtlib,
-            str(TypedValue) : self._gromet_typed_value_to_smtlib,
-            str(GrometPort) : self._gromet_port_to_smtlib,
-            str(GrometBoxFunction): self._gromet_box_function_to_smtlib,
-            str(LiteralValue): self._gromet_literal_value_to_smtlib,
-        }
-
-    # STUB This is where we will read in and process the bilayer file
-    def query(query_str):
-        return False
-
-    # STUB Read the bilayer file into some object
-    @staticmethod
-    def from_bilayer_file(gromet_path):
         return QueryableGromet(json_to_gromet(gromet_path))
