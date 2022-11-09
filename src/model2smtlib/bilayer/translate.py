@@ -1,7 +1,7 @@
 import json
 from typing import Dict
 from model2smtlib import QueryableModel
-
+from pysmt.shortcuts import get_model, And, Symbol, FunctionType, Function, Equals, Int, Real, substitute, TRUE, FALSE, Iff, Plus, Times, ForAll, simplify, LT, LE, GT, GE
 
 class QueryableBilayer(QueryableModel):
     def __init__(self):
@@ -143,5 +143,24 @@ class Bilayer(object):
     def to_smtlib(self, timepoints):
         return And([self.to_smtlib_timepoint(t) for t in range(timepoints)])
 
-    def to_smtlib_timepoint(self, timepoint):
-        return And([t.to_smtlib(timepoint) for t in self.tangent])
+    def to_smtlib_timepoint(self, timepoint): ## TODO remove prints
+#        for t in self.flux:
+#            print('index:',t)
+#            param = self.flux[t].parameter
+#            print('parameter:', param)
+#            for input_edge in self.input_edges:
+#                if input_edge.tgt.parameter == param:
+#                    print(input_edge.src.parameter)
+        for t in self.tangent:
+            print('index:', t)
+            tanvar = self.tangent[t].parameter
+            print('tangent variable:', tanvar)
+            for output_edge in self.output_edges:
+                if output_edge.tgt.parameter == tanvar:
+                    param = output_edge.src.parameter
+                    print(type(output_edge))
+                    print('parameter:',param)
+                    for input_edge in self.input_edges:
+                        if input_edge.tgt.parameter == param:
+                            print('state variable:',input_edge.src.parameter)
+##        return And([t.to_smtlib(timepoint) for t in self.tangent])

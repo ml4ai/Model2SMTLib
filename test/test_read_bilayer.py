@@ -1,5 +1,7 @@
 import os
+import sys
 import unittest
+sys.path.append('/Users/dmosaphir/SIFT/Projects/ASKEM/code/model2smtlib/src')
 from model2smtlib.bilayer.translate import Bilayer
 
 DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data")
@@ -11,10 +13,16 @@ class TestCompilation(unittest.TestCase):
             DATA, "CHIME_SIR_dynamics_BiLayer.json"
         )
         bilayer = Bilayer.from_json(bilayer_json_file)
+        for t in bilayer.state:
+            print(bilayer.state[t].__dict__)
+        for t in bilayer.flux:
+            print(bilayer.flux[t].__dict__)
+        for t in bilayer.tangent:
+            print(bilayer.tangent[t].__dict__)
         assert bilayer
 
-        encoding = bilayer.to_smtlib(2)
-        assert encoding
+        encoding = bilayer.to_smtlib_timepoint(2)
+#        assert encoding
 
 
 if __name__ == "__main__":
