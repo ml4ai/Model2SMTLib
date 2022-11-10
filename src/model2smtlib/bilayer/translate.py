@@ -154,44 +154,92 @@ class Bilayer(object):
         eqns = [] ## List of SMT equations for a given timepoint. These will be joined by an "And" command and returned
         for t in self.tangent: ## Loop over tangents (derivatives)
             derivative_expr = 0
-#            print('index:', t)
             ## Get tangent variable and translate it to SMT form tanvar_smt
             tanvar = self.tangent[t].parameter
             tanvar_smt = self.tangent[t].to_smtlib(timepoint)
             state_var_next_step = self.state[t].parameter
             state_var_smt = self.state[t].to_smtlib(timepoint)
             state_var_next_step_smt = self.state[t].to_smtlib(timepoint + 1)
-            ## Loop over the output_edges which are incident to the tangent variable: these correspond to terms in its derivative
-            for output_edge in self.output_edges:
-                if output_edge.tgt.parameter == tanvar:
-                    param = output_edge.src.parameter
-#                    print('parameter:',param)
-                    for t3 in self.flux:
-                    ## Find constants and translate to SMT
-                        if self.flux[t3].parameter == param:
-                            flux_term = self.flux[t3]
-                            expr = flux_term.to_smtlib(timepoint)
-                    ## Find state variables and translate to SMT
-                    for input_edge in self.input_edges:
-                        if input_edge.tgt.parameter == param:
-                            state_var = input_edge.src.parameter
-                            for t2 in self.state:
-                                if self.state[t2].parameter == state_var:
-                                    state_smt = self.state[t2].to_smtlib(timepoint)
-#                                    print(self.state[t2].parameter)
-                                    expr = Times(expr, state_smt)
-                    ## Add and subtract terms to derivative
-                    if output_edge.to_smtlib(timepoint) == 'positive':
-                        derivative_expr += expr 
-                    elif output_edge.to_smtlib(timepoint) == 'negative':
-                        derivative_expr -= expr
-#                    print('expr:', expr)
-#            print('tan var:', tanvar_smt)
-#            print('derivative_expr:', simplify(derivative_expr))
-            ## Set tangent = derivative
-            eqn = simplify(Equals(tanvar_smt, derivative_expr))
-            eqn = simplify(Equals(state_var_next_step_smt, Plus(state_var_smt, derivative_expr)))
-#            print('eqn:', eqn)
-            eqns.append(eqn)
-        print('eqns:', eqns)
-        return And(eqns)
+            ## experiment
+            relevant_output_edges = [val.src.index for val in self.output_edges if val.tgt.index == self.tangent[t].index]
+            for output_edge in relevant_output_edges:
+                param = self.flux[output_edge].parameter
+                print(param)
+            ## end experiment
+#            ## Loop over the output_edges which are incident to the tangent variable: these correspond to terms in its derivative
+#            for output_edge in self.output_edges:
+#                output_edge_tanvar_index = output_edge.tgt.index
+#                if output_edge_tanvar_index == self.tangent[t].index: ## if output edge points to that tangent variable
+#                    param = output_edge.src.parameter
+#                    for t3 in self.flux:
+#                    ## Find constants and translate to SMT
+#                        if self.flux[t3].index == output_edge.src.index:
+#                            flux_term = self.flux[t3]
+#                            expr = flux_term.to_smtlib(timepoint)
+#                    ## Find state variables and translate to SMT
+#                    for input_edge in self.input_edges:
+#                        if input_edge.tgt.index == output_edge.src.index: ## same parameter
+#                            state_var = input_edge.src.parameter
+#                            for t2 in self.state: ## look for state variables that get multiplied by the parameter
+#                                if self.state[t2].index == input_edge.src.index:
+#                                    state_smt = self.state[t2].to_smtlib(timepoint)
+#                                    expr = Times(expr, state_smt)
+#                    ## Add and subtract terms to derivative
+#                    if output_edge.to_smtlib(timepoint) == 'positive':
+#                        derivative_expr += expr 
+#                    elif output_edge.to_smtlib(timepoint) == 'negative':
+#                        derivative_expr -= expr
+#            ## Set tangent = derivative
+#            eqn = simplify(Equals(tanvar_smt, derivative_expr))
+#            eqn = simplify(Equals(state_var_next_step_smt, Plus(state_var_smt, derivative_expr)))
+#            eqns.append(eqn)
+#        print('eqns:', eqns)
+#        return And(eqns)
+
+
+#    def to_smtlib_timepoint(self, timepoint): ## TODO remove prints ## correct version - commenting out during editing.
+#        eqns = [] ## List of SMT equations for a given timepoint. These will be joined by an "And" command and returned
+#        for t in self.tangent: ## Loop over tangents (derivatives)
+#            derivative_expr = 0
+##            print('index:', t)
+#            ## Get tangent variable and translate it to SMT form tanvar_smt
+#            tanvar = self.tangent[t].parameter
+#            tanvar_smt = self.tangent[t].to_smtlib(timepoint)
+#            state_var_next_step = self.state[t].parameter
+#            state_var_smt = self.state[t].to_smtlib(timepoint)
+#            state_var_next_step_smt = self.state[t].to_smtlib(timepoint + 1)
+#            ## Loop over the output_edges which are incident to the tangent variable: these correspond to terms in its derivative
+#            for output_edge in self.output_edges:
+#                if output_edge.tgt.parameter == tanvar:
+#                    print(output_edge.tgt.index)
+#                    param = output_edge.src.parameter
+##                    print('parameter:',param)
+#                    for t3 in self.flux:
+#                    ## Find constants and translate to SMT
+#                        if self.flux[t3].parameter == param:
+#                            flux_term = self.flux[t3]
+#                            expr = flux_term.to_smtlib(timepoint)
+#                    ## Find state variables and translate to SMT
+#                    for input_edge in self.input_edges:
+#                        if input_edge.tgt.parameter == param:
+#                            state_var = input_edge.src.parameter
+#                            for t2 in self.state:
+#                                if self.state[t2].parameter == state_var:
+#                                    state_smt = self.state[t2].to_smtlib(timepoint)
+##                                    print(self.state[t2].parameter)
+#                                    expr = Times(expr, state_smt)
+#                    ## Add and subtract terms to derivative
+#                    if output_edge.to_smtlib(timepoint) == 'positive':
+#                        derivative_expr += expr 
+#                    elif output_edge.to_smtlib(timepoint) == 'negative':
+#                        derivative_expr -= expr
+##                    print('expr:', expr)
+##            print('tan var:', tanvar_smt)
+##            print('derivative_expr:', simplify(derivative_expr))
+#            ## Set tangent = derivative
+#            eqn = simplify(Equals(tanvar_smt, derivative_expr))
+#            eqn = simplify(Equals(state_var_next_step_smt, Plus(state_var_smt, derivative_expr)))
+##            print('eqn:', eqn)
+#            eqns.append(eqn)
+#        print('eqns:', eqns)
+#        return And(eqns)
