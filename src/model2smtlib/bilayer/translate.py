@@ -2,6 +2,7 @@ import json
 from typing import Dict
 from model2smtlib import QueryableModel
 from pysmt.shortcuts import get_model, And, Symbol, FunctionType, Function, Equals, Int, Real, substitute, TRUE, FALSE, Iff, Plus, Times, ForAll, simplify, LT, LE, GT, GE
+from pysmt.typing import INT, REAL, BOOL
 
 class QueryableBilayer(QueryableModel):
     def __init__(self):
@@ -26,12 +27,18 @@ class BilayerNode(object):
 
 class BilayerStateNode(BilayerNode):
     def to_smtlib(self, timepoint):
-        pass
+        param = self.parameter
+        ans = Symbol(f"{param}_{timepoint}", REAL)
+        print(ans)
+        return ans
 
 
 class BilayerFluxNode(BilayerNode):
     def to_smtlib(self, timepoint):
-        pass
+        param = self.parameter
+        ans = Symbol(f"{param}_{timepoint}", REAL) 
+        print(ans)
+        return ans
 
 
 class BilayerEdge(object):
@@ -45,12 +52,12 @@ class BilayerEdge(object):
 
 class BilayerPositiveEdge(BilayerEdge):
     def to_smtlib(self, timepoint):
-        pass
+        return "+"
 
 
 class BilayerNegativeEdge(BilayerEdge):
     def to_smtlib(self, timepoint):
-        pass
+        return "-"
 
 
 class Bilayer(object):
@@ -144,23 +151,32 @@ class Bilayer(object):
         return And([self.to_smtlib_timepoint(t) for t in range(timepoints)])
 
     def to_smtlib_timepoint(self, timepoint): ## TODO remove prints
-#        for t in self.flux:
-#            print('index:',t)
-#            param = self.flux[t].parameter
-#            print('parameter:', param)
-#            for input_edge in self.input_edges:
-#                if input_edge.tgt.parameter == param:
-#                    print(input_edge.src.parameter)
         for t in self.tangent:
+            derivative_expr = 0
             print('index:', t)
             tanvar = self.tangent[t].parameter
-            print('tangent variable:', tanvar)
+            tanvar_smt = self.tangent[t].to_smtlib(2)
+#            print('tangent variable:', tanvar)
             for output_edge in self.output_edges:
                 if output_edge.tgt.parameter == tanvar:
                     param = output_edge.src.parameter
-                    print(type(output_edge))
-                    print('parameter:',param)
+                    print(output_edge.to_smtlib(2))
+#                    print('parameter:',param)
+                    for t3 in self.flux:
+                        if self.flux[t3].parameter == param:
+                            flux_term = self.flux[t3]
+                            expr = flux_term.to_smtlib(2)
                     for input_edge in self.input_edges:
                         if input_edge.tgt.parameter == param:
-                            print('state variable:',input_edge.src.parameter)
+                            state_var = input_edge.src.parameter
+                            for t2 in self.state:
+                                if self.state[t2].parameter == state_var:
+#                                    print(self.state[t2].parameter)
+                                    expr = Times(expr, self.state[t2].to_smtlib(2))
+                    derivative_expr += expr 
+                    print('expr:', expr)
+            print('tan var:', tanvar_smt)
+            print('derivative_expr:', simplify(derivative_expr))
+            Equals(tanvar_smt, derivative_expr)
+#                            print('state variable:',input_edge.src.parameter)
 ##        return And([t.to_smtlib(timepoint) for t in self.tangent])
