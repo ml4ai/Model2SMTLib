@@ -15,7 +15,8 @@ class TestCompilation(unittest.TestCase):
         bilayer = Bilayer.from_json(bilayer_json_file)
         assert bilayer
 
-        encoding = bilayer.to_smtlib_timepoint(2)
+#        encoding = bilayer.to_smtlib_timepoint(2)
+        encoding = bilayer.to_smtlib([2,3])
 #        assert encoding
 
 
