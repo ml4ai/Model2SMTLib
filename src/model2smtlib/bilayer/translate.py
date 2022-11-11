@@ -162,9 +162,12 @@ class Bilayer(object):
             state_var_next_step_smt = self.state[t].to_smtlib(timepoint + 1)
             ## experiment
             relevant_output_edges = [val.src.index for val in self.output_edges if val.tgt.index == self.tangent[t].index]
-            for output_edge in relevant_output_edges:
-                param = self.flux[output_edge].parameter
+            for flux_index in relevant_output_edges:
+                param = self.flux[flux_index].parameter
                 print(param)
+                ## Check which state vars go to that param
+                relevant_input_edges = [val2.src.parameter for val2 in self.input_edges if val2.tgt.index == flux_index] 
+                print(relevant_input_edges)
             ## end experiment
 #            ## Loop over the output_edges which are incident to the tangent variable: these correspond to terms in its derivative
 #            for output_edge in self.output_edges:
