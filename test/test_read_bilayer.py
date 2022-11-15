@@ -16,7 +16,7 @@ class TestCompilation(unittest.TestCase):
         assert bilayer
 
 #        encoding = bilayer.to_smtlib_timepoint(2) ## encoding at the single timepoint 2
-        encoding = bilayer.to_smtlib([2,3]) ## encoding at the list of timepoints [2,3]
+        encoding = bilayer.to_smtlib([2.5,3,4, 6]) ## encoding at the list of timepoints [2,3]
         assert encoding
 
 

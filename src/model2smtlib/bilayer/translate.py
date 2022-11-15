@@ -146,11 +146,15 @@ class Bilayer(object):
         )
 
     def to_smtlib(self, timepoints):
-        ans = simplify(And([self.to_smtlib_timepoint(t) for t in timepoints]))
+#        ans = simplify(And([self.to_smtlib_timepoint(t) for t in timepoints]))
+        ans = simplify(And([self.to_smtlib_timepoint(timepoints[i], timepoints[i+1]) for i in range(len(timepoints)-1)]))
         print(ans)
         return ans
 
-    def to_smtlib_timepoint(self, timepoint): ## TODO remove prints
+    def to_smtlib_timepoint(self, timepoint, next_timepoint): ## TODO remove prints
+        ## Calculate time step size  
+        time_step_size = next_timepoint - timepoint
+        print('timestep size:', time_step_size)
         eqns = [] ## List of SMT equations for a given timepoint. These will be joined by an "And" command and returned
         for t in self.tangent: ## Loop over tangents (derivatives)
             derivative_expr = 0
@@ -159,7 +163,8 @@ class Bilayer(object):
             tanvar_smt = self.tangent[t].to_smtlib(timepoint)
             state_var_next_step = self.state[t].parameter
             state_var_smt = self.state[t].to_smtlib(timepoint)
-            state_var_next_step_smt = self.state[t].to_smtlib(timepoint + 1)
+            state_var_next_step_smt = self.state[t].to_smtlib(next_timepoint)
+#            state_var_next_step_smt = self.state[t].to_smtlib(timepoint + 1)
             relevant_output_edges = [(val, val.src.index) for val in self.output_edges if val.tgt.index == self.tangent[t].index]
             for flux_sign_index in relevant_output_edges:
                 flux_term = self.flux[flux_sign_index[1]]
@@ -173,6 +178,8 @@ class Bilayer(object):
                     derivative_expr += expr 
                 elif flux_sign_index[0].to_smtlib(timepoint) == 'negative':
                     derivative_expr -= expr
-            eqn = simplify(Equals(state_var_next_step_smt, Plus(state_var_smt, derivative_expr)))
+            ## Assemble into equation of the form f(t + delta t) approximately = f(t) + (delta t) f'(t)
+            eqn = simplify(Equals(state_var_next_step_smt, Plus(state_var_smt, time_step_size*derivative_expr)))
+            print(eqn)
             eqns.append(eqn)
         return And(eqns)
