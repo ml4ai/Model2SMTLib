@@ -1,7 +1,7 @@
 import json
 from typing import Dict, List, Union
 from funman.model import Model, Parameter, QueryLE, QueryTrue
-from funman.model.bilayer import Bilayer, BilayerModel
+from funman.model.bilayer import Bilayer, BilayerMeasurement, BilayerModel
 from funman.search_utils import Box
 from model2smtlib import QueryableModel
 import pysmt
@@ -130,6 +130,13 @@ class BilayerEncoder(object):
                     ub=model.parameter_bounds[node.parameter][1],
                 )
                 for _, node in model.bilayer.flux.items()
+            ] + [
+                Parameter(
+                    node.parameter,
+                    lb=model.parameter_bounds[node.parameter][0],
+                    ub=model.parameter_bounds[node.parameter][1],
+                )
+                for _, node in model.measurements.flux.items()
             ]
 
             timed_parameters = [
@@ -144,26 +151,72 @@ class BilayerEncoder(object):
         else:
             parameter_constraints = TRUE()
 
+        measurements = self._encode_measurements(
+            model.measurements, state_timepoints
+        )
+
         ## Assume that all parameters are constant
         parameter_constraints = And(
             parameter_constraints,
-            self._set_parameters_constant(model, encoding),
+            self._set_parameters_constant(
+                [v.parameter for v in model.bilayer.flux.values()], encoding
+            ),
+            self._set_parameters_constant(
+                [v.parameter for v in model.measurements.flux.values()],
+                measurements,
+            ),
         )
 
-        formula = And(init, parameter_constraints, encoding)
+        formula = And(init, parameter_constraints, encoding, measurements)
         symbols = self._symbols(formula)
         return Encoding(formula=formula, symbols=symbols)
 
-    def _set_parameters_constant(self, model, formula):
-        parameters = {
-            node.parameter: Symbol(node.parameter, REAL)
-            for _, node in model.bilayer.flux.items()
+    def _encode_measurements(
+        self, measurements: BilayerMeasurement, timepoints
+    ):
+        ans = And(
+            [
+                self._encode_measurements_timepoint(measurements, timepoints[i])
+                for i in range(len(timepoints))
+            ]
+        )
+        return ans
+
+    def _encode_measurements_timepoint(self, measurements, t):
+        observable_defs = And(
+            [
+                Equals(
+                    o.to_smtlib(t), self._observable_defn(measurements, o, t)
+                )
+                for o in measurements.observable.values()
+            ]
+        )
+        return observable_defs
+
+    def _observable_defn(self, measurements, obs, t):
+        # flux * incoming1 * incoming2 ...
+        obs_in_edges = measurements.node_incoming_edges[obs]
+        result = Real(0.0)
+        for src in obs_in_edges:
+            # src is a flux
+            f_t = src.to_smtlib(t)
+            src_srcs = [
+                s.to_smtlib(t) for s in measurements.node_incoming_edges[src]
+            ]
+            result = Plus(result, Times([f_t] + src_srcs)).simplify()
+        # flux = next([measurements.output_edges])
+        return result
+
+    def _set_parameters_constant(self, parameters, formula):
+        params = {
+            parameter: Symbol(parameter, REAL) for parameter in parameters
         }
+
         symbols = self._symbols(formula)
         all_equal = And(
             [
-                And([Equals(parameters[p], s) for t, s in symbols[p].items()])
-                for p in parameters
+                And([Equals(params[p], s) for t, s in symbols[p].items()])
+                for p in params
             ]
         )
         return all_equal
