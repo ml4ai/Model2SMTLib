@@ -4,6 +4,7 @@ from funman.model import Model, Parameter, QueryLE, QueryTrue
 from funman.model.bilayer import Bilayer, BilayerMeasurement, BilayerModel
 from funman.search_utils import Box
 from model2smtlib import QueryableModel
+from model2smtlib.translate import Encoder, EncodingOptions
 import pysmt
 from pysmt.shortcuts import (
     get_model,
@@ -49,57 +50,18 @@ class QueryableBilayer(QueryableModel):
         return QueryableBilayer(Bilayer.from_json(bilayer_path))
 
 
-class Encoding(object):
-    def __init__(self, formula=None, symbols=None) -> None:
-        self.formula = formula
-        self.symbols = symbols
-
-
-class BilayerEncodingOptions(object):
+class BilayerEncodingOptions(EncodingOptions):
     def __init__(self, step_size=1, max_steps=2) -> None:
+        super().__init__(max_steps)
         self.step_size = step_size
         self.max_steps = max_steps
 
 
-class BilayerEncoder(object):
+class BilayerEncoder(Encoder):
     def __init__(
         self, config: BilayerEncodingOptions = BilayerEncodingOptions()
     ) -> None:
-        self.config = config
-
-    def encode_query(self, model_encoding, query):
-        query_handlers = {
-            QueryLE: self._encode_query_le,
-            QueryTrue: self._encode_query_true,
-        }
-
-        if type(query) in query_handlers:
-            return query_handlers[type(query)](model_encoding, query)
-        else:
-            raise NotImplementedError(
-                f"Do not know how to encode query of type {type(query)}"
-            )
-
-    def _encode_query_le(self, model_encoding, query):
-        timepoints = model_encoding.symbols[query.variable]
-        return Encoding(
-            And([LE(s, Real(query.ub)) for s in timepoints.values()])
-        )
-
-    def _encode_query_true(self, model_encoding, query):
-        return Encoding(TRUE())
-
-    def _symbols(self, formula):
-        symbols = {}
-        vars = list(formula.get_free_variables())
-        # vars.sort(key=lambda x: x.symbol_name())
-        for var in vars:
-            var_name, timepoint = self._split_symbol(var)
-            if timepoint:
-                if var_name not in symbols:
-                    symbols[var_name] = {}
-                symbols[var_name][timepoint] = var
-        return symbols
+        super().__init__(config)
 
     def encode_model(self, model: BilayerModel):
         state_timepoints = range(
