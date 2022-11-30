@@ -4,7 +4,7 @@ from funman.model import Model, Parameter, QueryLE, QueryTrue
 from funman.model.bilayer import Bilayer, BilayerMeasurement, BilayerModel
 from funman.search_utils import Box
 from model2smtlib import QueryableModel
-from model2smtlib.translate import Encoder, EncodingOptions
+from model2smtlib.translate import Encoder, Encoding, EncodingOptions
 import pysmt
 from pysmt.shortcuts import (
     get_model,
