@@ -69,6 +69,12 @@ class BilayerEncoder(Encoder):
             self.config.max_steps + 1,
             self.config.step_size,
         )
+
+        if len(list(state_timepoints)) == 0:
+            raise Exception(
+                f"Could not identify timepoints from step_size = {self.config.step_size} and max_steps = {self.config.max_steps}"
+            )
+
         transition_timepoints = range(
             0, self.config.max_steps, self.config.step_size
         )
@@ -92,6 +98,8 @@ class BilayerEncoder(Encoder):
                     ub=model.parameter_bounds[node.parameter][1],
                 )
                 for _, node in model.bilayer.flux.items()
+                if node.parameter in model.parameter_bounds
+                and model.parameter_bounds[node.parameter]
             ] + [
                 Parameter(
                     node.parameter,
@@ -99,6 +107,8 @@ class BilayerEncoder(Encoder):
                     ub=model.parameter_bounds[node.parameter][1],
                 )
                 for _, node in model.measurements.flux.items()
+                if node.parameter in model.parameter_bounds
+                and model.parameter_bounds[node.parameter]
             ]
 
             timed_parameters = [
@@ -173,7 +183,7 @@ class BilayerEncoder(Encoder):
         params = {
             parameter: Symbol(parameter, REAL) for parameter in parameters
         }
-
+        # print(formula)
         symbols = self._symbols(formula)
         all_equal = And(
             [
