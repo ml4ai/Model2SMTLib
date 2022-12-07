@@ -96,6 +96,7 @@ class BilayerEncoder(Encoder):
                     node.parameter,
                     lb=model.parameter_bounds[node.parameter][0],
                     ub=model.parameter_bounds[node.parameter][1],
+                    symbol=Symbol(node.parameter, REAL),
                 )
                 for _, node in model.bilayer.flux.items()
                 if node.parameter in model.parameter_bounds
@@ -105,12 +106,15 @@ class BilayerEncoder(Encoder):
                     node.parameter,
                     lb=model.parameter_bounds[node.parameter][0],
                     ub=model.parameter_bounds[node.parameter][1],
+                    symbol=Symbol(node.parameter, REAL),
                 )
                 for _, node in model.measurements.flux.items()
                 if node.parameter in model.parameter_bounds
                 and model.parameter_bounds[node.parameter]
             ]
-
+            for p in parameters:
+                self.untimed_symbols.add(p.name)
+            # print(f"Untimed Symbols: {self.untimed_symbols}")
             timed_parameters = [
                 p.timed_copy(timepoint)
                 for p in parameters
@@ -141,6 +145,8 @@ class BilayerEncoder(Encoder):
 
         formula = And(init, parameter_constraints, encoding, measurements)
         symbols = self._symbols(formula)
+        # print(f"Encoding symbols: {symbols}")
+        # print(f"Untimed symbols: {self.untimed_symbols}")
         return Encoding(formula=formula, symbols=symbols)
 
     def _encode_measurements(
@@ -201,6 +207,7 @@ class BilayerEncoder(Encoder):
 
     def symbol_values(self, model_encoding, pysmtModel):
         vars = model_encoding.symbols
+        # print(f"Vars: {vars}")
         vals = {}
         for var in vars:
             vals[var] = {}
@@ -238,6 +245,7 @@ class BilayerEncoder(Encoder):
             variable assignment
         """
         series = self.symbol_values(model_encoding, pysmtModel)
+        # print(series)
         a_series = {}  # timeseries as array/list
         max_t = max(
             [max([int(k) for k in tps.keys()]) for _, tps in series.items()]

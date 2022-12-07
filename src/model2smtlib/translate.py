@@ -39,12 +39,21 @@ class EncodingOptions(object):
 class Encoder(object):
     def __init__(self, config: EncodingOptions = EncodingOptions()) -> None:
         self.config = config
+        self.untimed_symbols = set([])
 
     def _symbols(self, formula):
         symbols = {}
         vars = list(formula.get_free_variables())
         # vars.sort(key=lambda x: x.symbol_name())
+        # print(self.untimed_symbols)
         for var in vars:
+            # print(var)
+            if var.symbol_name() in self.untimed_symbols:
+                # print(f"Skip untimed {var}")
+                continue
+            # else:
+            # print(f"Using var {var}")
+
             var_name, timepoint = self._split_symbol(var)
             if timepoint:
                 if var_name not in symbols:
