@@ -96,7 +96,6 @@ class BilayerEncoder(Encoder):
                     node.parameter,
                     lb=model.parameter_bounds[node.parameter][0],
                     ub=model.parameter_bounds[node.parameter][1],
-                    symbol=Symbol(node.parameter, REAL),
                 )
                 for _, node in model.bilayer.flux.items()
                 if node.parameter in model.parameter_bounds
@@ -106,7 +105,6 @@ class BilayerEncoder(Encoder):
                     node.parameter,
                     lb=model.parameter_bounds[node.parameter][0],
                     ub=model.parameter_bounds[node.parameter][1],
-                    symbol=Symbol(node.parameter, REAL),
                 )
                 for _, node in model.measurements.flux.items()
                 if node.parameter in model.parameter_bounds
