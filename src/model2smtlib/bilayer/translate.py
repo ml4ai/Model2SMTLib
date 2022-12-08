@@ -230,7 +230,9 @@ class BilayerEncoder(Encoder):
             for t in vars[var]:
                 try:
                     symbol = vars[var][t]
-                    vals[var][t] = float(pysmtModel.get_py_value(symbol))
+                    vals[var][t] = float(
+                        pysmtModel.get_py_value(symbol)
+                    )  # pysmtModel[symbol].constant_value()
                 except OverflowError as e:
                     l.warn(e)
                     pass
