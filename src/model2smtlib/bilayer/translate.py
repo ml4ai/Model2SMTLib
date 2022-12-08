@@ -142,6 +142,9 @@ class BilayerEncoder(Encoder):
             self._set_identical_parameters_equal(
                 model.identical_parameters, encoding
             ),
+            self._set_identical_parameters_equal(
+                model.identical_parameters, measurements
+            ),
         )
 
         formula = And(init, parameter_constraints, encoding, measurements)
@@ -184,6 +187,7 @@ class BilayerEncoder(Encoder):
             ]
             result = Plus(result, Times([f_t] + src_srcs)).simplify()
         # flux = next([measurements.output_edges])
+        # print(result)
         return result
 
     def _set_parameters_constant(self, parameters, formula):
@@ -208,6 +212,7 @@ class BilayerEncoder(Encoder):
                 Equals(p1, p2) for p1 in symbols for p2 in symbols if p1 != p2
             ]
             constraints.append(And(pairs))
+        # print(constraints)
         return And(constraints)
 
     def _split_symbol(self, symbol):

@@ -75,7 +75,14 @@ class Encoder(object):
             )
 
     def _encode_query_le(self, model_encoding, query):
-        timepoints = model_encoding.symbols[query.variable]
+        symbols = model_encoding.symbols[query.variable]
+        timepoints = (
+            symbols
+            if not query.at_end
+            else {
+                str(self.config.max_steps): symbols[str(self.config.max_steps)]
+            }
+        )
         return Encoding(
             And([LE(s, Real(query.ub)) for s in timepoints.values()])
         )
