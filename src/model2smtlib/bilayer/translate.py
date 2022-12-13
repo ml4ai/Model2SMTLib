@@ -100,16 +100,18 @@ class BilayerEncoder(Encoder):
                 for _, node in model.bilayer.flux.items()
                 if node.parameter in model.parameter_bounds
                 and model.parameter_bounds[node.parameter]
-            ] + [
-                Parameter(
-                    node.parameter,
-                    lb=model.parameter_bounds[node.parameter][0],
-                    ub=model.parameter_bounds[node.parameter][1],
-                )
-                for _, node in model.measurements.flux.items()
-                if node.parameter in model.parameter_bounds
-                and model.parameter_bounds[node.parameter]
             ]
+            if model.measurements:
+                parameters += [
+                    Parameter(
+                        node.parameter,
+                        lb=model.parameter_bounds[node.parameter][0],
+                        ub=model.parameter_bounds[node.parameter][1],
+                    )
+                    for _, node in model.measurements.flux.items()
+                    if node.parameter in model.parameter_bounds
+                    and model.parameter_bounds[node.parameter]
+                ]
             for p in parameters:
                 self.untimed_symbols.add(p.name)
             # print(f"Untimed Symbols: {self.untimed_symbols}")
@@ -130,24 +132,39 @@ class BilayerEncoder(Encoder):
         )
 
         ## Assume that all parameters are constant
-        parameter_constraints = And(
-            parameter_constraints,
-            self._set_parameters_constant(
-                [v.parameter for v in model.bilayer.flux.values()], encoding
-            ),
-            self._set_parameters_constant(
+        measurement_params_eq = And([])
+        measurement_params_ident_eq = And([])
+        if model.measurements:
+            measurement_params_eq = self._set_parameters_constant(
                 [v.parameter for v in model.measurements.flux.values()],
                 measurements,
-            ),
-            self._set_identical_parameters_equal(
-                model.identical_parameters, encoding
-            ),
-            self._set_identical_parameters_equal(
+            )
+            measurement_params_ident_eq = self._set_identical_parameters_equal(
                 model.identical_parameters, measurements
-            ),
+            )
+            # print(measurement_params_eq)
+            # print(measurement_params_ident_eq)
+
+        parameter_equality = self._set_parameters_constant(
+            [v.parameter for v in model.bilayer.flux.values()],
+            parameter_constraints,
+        )
+        parameter_ident_eq = self._set_identical_parameters_equal(
+            model.identical_parameters, parameter_equality
         )
 
+        # print(measurement_params_ident_eq)
+        parameter_constraints = And(
+            parameter_constraints,
+            parameter_equality,
+            measurement_params_eq,
+            parameter_ident_eq,
+            measurement_params_ident_eq,
+        )
+        # for p in [init, parameter_constraints, encoding, measurements]:
+        #     print(p.get_free_variables())
         formula = And(init, parameter_constraints, encoding, measurements)
+
         symbols = self._symbols(formula)
         # print(f"Encoding symbols: {symbols}")
         # print(f"Untimed symbols: {self.untimed_symbols}")
@@ -165,14 +182,16 @@ class BilayerEncoder(Encoder):
         return ans
 
     def _encode_measurements_timepoint(self, measurements, t):
-        observable_defs = And(
-            [
+        observations = []
+        if measurements:
+            observations = [
                 Equals(
                     o.to_smtlib(t), self._observable_defn(measurements, o, t)
                 )
                 for o in measurements.observable.values()
             ]
-        )
+
+        observable_defs = And(observations)
         return observable_defs
 
     def _observable_defn(self, measurements, obs, t):
@@ -194,8 +213,19 @@ class BilayerEncoder(Encoder):
         params = {
             parameter: Symbol(parameter, REAL) for parameter in parameters
         }
+        # vars = list(formula.get_free_variables())
+        # symbols = {v.symbol_name(): v for v in vars}
+        # vars = list(formula.get_free_variables())
         # print(formula)
         symbols = self._symbols(formula)
+        # print(
+        #     And(
+        #         [
+        #             And([Equals(params[p], s) for t, s in symbols[p].items()])
+        #             for p in params
+        #         ]
+        #     )
+        # )
         all_equal = And(
             [
                 And([Equals(params[p], s) for t, s in symbols[p].items()])
@@ -206,10 +236,16 @@ class BilayerEncoder(Encoder):
 
     def _set_identical_parameters_equal(self, identical_parameters, formula):
         constraints = []
+        # print(formula)
+        vars = list(formula.get_free_variables())
+        symbols = {v.symbol_name(): v for v in vars}
         for idp in identical_parameters:
-            symbols = [Symbol(p, REAL) for p in idp]
+            idp_symbols = [symbols[p] for p in idp if p in symbols]
             pairs = [
-                Equals(p1, p2) for p1 in symbols for p2 in symbols if p1 != p2
+                Equals(p1, p2)
+                for p1 in idp_symbols
+                for p2 in idp_symbols
+                if p1 != p2
             ]
             constraints.append(And(pairs))
         # print(constraints)
